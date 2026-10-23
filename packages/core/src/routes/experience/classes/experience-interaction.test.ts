@@ -92,6 +92,7 @@ const userQueries = {
   hasUserWithIdentity: jest.fn().mockResolvedValue(false),
   findUserById: jest.fn().mockResolvedValue(mockUser),
   updateUserById: jest.fn().mockResolvedValue(mockUser),
+  updateUserFromSignIn: jest.fn().mockResolvedValue(mockUser),
 };
 const userLibraries = {
   checkIdentifierCollision: jest.fn().mockResolvedValue(null),
@@ -184,6 +185,7 @@ const createSignInInteraction = ({
     findUserByUsername: jest.fn().mockResolvedValue(user),
     findUserByEmail: jest.fn().mockResolvedValue(user),
     updateUserById: jest.fn().mockResolvedValue(user),
+    updateUserFromSignIn: jest.fn().mockResolvedValue(user),
   };
   const runActionHandler = jest.fn(
     async (_input: { event: unknown; key: LogtoActionKey }): Promise<unknown> => undefined
@@ -1562,7 +1564,7 @@ describe('ExperienceInteraction class', () => {
           },
         })
       );
-      expect(signInUserQueries.updateUserById).toHaveBeenCalledTimes(1);
+      expect(signInUserQueries.updateUserFromSignIn).toHaveBeenCalledTimes(1);
     });
 
     const firstFactorCompletionCases: Array<{
@@ -1612,7 +1614,7 @@ describe('ExperienceInteraction class', () => {
           })
         );
         // The sign-in side effects run exactly once, on the submission that passes.
-        expect(signInUserQueries.updateUserById).toHaveBeenCalledTimes(1);
+        expect(signInUserQueries.updateUserFromSignIn).toHaveBeenCalledTimes(1);
       }
     );
 
@@ -1646,7 +1648,7 @@ describe('ExperienceInteraction class', () => {
           maskedIdentifiers: { email: '****@logto.io' },
         },
       });
-      expect(signInUserQueries.updateUserById).not.toHaveBeenCalled();
+      expect(signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
       expect(provider.interactionResult).not.toHaveBeenCalled();
     });
 
@@ -1719,7 +1721,7 @@ describe('ExperienceInteraction class', () => {
         code: 'session.step_up.acr_not_satisfied',
         status: 403,
       });
-      expect(signInUserQueries.updateUserById).not.toHaveBeenCalled();
+      expect(signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
       expect(provider.interactionResult).not.toHaveBeenCalled();
     });
 

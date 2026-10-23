@@ -59,7 +59,6 @@ export default function adminUserSocialRoutes<T extends ManagementApiRouter>(
 
       const updatedUser = await updateUserById(userId, {
         identities: {
-          ...user.identities,
           [target]: identity,
         },
       });
@@ -119,7 +118,6 @@ export default function adminUserSocialRoutes<T extends ManagementApiRouter>(
 
       const updatedUser = await updateUserById(userId, {
         identities: {
-          ...user.identities,
           [target]: {
             userId: socialUserInfo.id,
             details: socialUserInfo,

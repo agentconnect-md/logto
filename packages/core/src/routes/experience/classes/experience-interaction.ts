@@ -1006,8 +1006,8 @@ export default class ExperienceInteraction {
     const userMfaVerifications = this.mfa.toUserMfaVerifications();
     const { mfaVerifications } = userMfaVerifications;
 
-    // Update user profile
-    const updatedUser = await userQueries.updateUserById(user.id, {
+    // Preserve identities linked while this sign-in was in progress.
+    const updatedUser = await userQueries.updateUserFromSignIn(user.id, {
       ...rest,
       ...conditional(
         passwordEncrypted &&
@@ -1019,10 +1019,7 @@ export default class ExperienceInteraction {
       ),
       ...conditional(
         socialIdentity && {
-          identities: {
-            ...user.identities,
-            ...toUserSocialIdentityData(socialIdentity),
-          },
+          identities: toUserSocialIdentityData(socialIdentity),
         }
       ),
       ...conditional(
