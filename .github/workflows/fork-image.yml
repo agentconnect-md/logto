@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [agentconnect-1.45]
   push:
-    branches: [agentconnect-1.45, zfy0701-preserve-social-bindings]
+    branches: ['**']
   workflow_dispatch:
 
 permissions:
