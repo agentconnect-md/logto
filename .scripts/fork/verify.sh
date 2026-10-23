@@ -13,7 +13,7 @@ trap cleanup EXIT
 trap 'exit 130' INT TERM
 
 docker run --rm --name "$runner" --cpus=2 --memory=3g --entrypoint sh "$image" \
-  -c 'cd /etc/logto/packages/core && NODE_OPTIONS=--max-old-space-size=2048 pnpm build:test && NODE_OPTIONS="--experimental-vm-modules --max-old-space-size=2048" pnpm exec jest --runInBand build/queries/user.test.js build/routes/admin-user/social.test.js build/routes/experience/classes/helpers.test.js build/routes/experience/classes/experience-interaction.test.js build/routes/experience/classes/experience-interaction.adaptive-mfa.test.js build/routes/experience/classes/experience-interaction.trusted-device.test.js'
+  -c 'cd /etc/logto/packages/core && NODE_OPTIONS=--max-old-space-size=2048 pnpm build:test && NODE_OPTIONS="--experimental-vm-modules --max-old-space-size=2048" pnpm exec jest --runInBand build/queries/user.test.js build/routes/admin-user/social.test.js build/routes/experience/index.test.js build/routes/experience/classes/helpers.test.js build/routes/experience/classes/experience-interaction.test.js build/routes/experience/classes/experience-interaction.adaptive-mfa.test.js build/routes/experience/classes/experience-interaction.trusted-device.test.js'
 docker network create "$network" >/dev/null
 docker run -d --name "$database" --network "$network" --cpus=1 --memory=512m \
   -e POSTGRES_USER=logto -e POSTGRES_PASSWORD=local-test-only -e POSTGRES_DB=logto \
