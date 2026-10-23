@@ -86,7 +86,7 @@ export default function adminUserSocialRoutes<T extends ManagementApiRouter>(
         body: { connectorId, connectorData },
       } = ctx.guard;
 
-      const [connector, user] = await Promise.all([
+      const [connector] = await Promise.all([
         getLogtoConnectorById(connectorId),
         findUserById(userId),
       ]);
