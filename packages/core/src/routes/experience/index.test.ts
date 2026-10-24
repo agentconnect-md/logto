@@ -192,6 +192,7 @@ const createRequesterWithMocks = ({
   const users = {
     findUserById: jest.fn().mockResolvedValue(user),
     updateUserById: jest.fn().mockResolvedValue(user),
+    updateUserFromSignIn: jest.fn().mockResolvedValue(user),
     hasUser: jest.fn().mockResolvedValue(false),
     hasUserWithEmail: jest.fn().mockResolvedValue(false),
     hasUserWithNormalizedPhone: jest.fn().mockResolvedValue(false),
@@ -1653,7 +1654,7 @@ describe('POST /experience/submit', () => {
       expect(optInResponse.status).toBe(204);
       expect(submitResponse.status).toBe(200);
 
-      expect(users.updateUserById).toHaveBeenCalledWith(
+      expect(users.updateUserFromSignIn).toHaveBeenCalledWith(
         user.id,
         expect.objectContaining(updatePatch)
       );
