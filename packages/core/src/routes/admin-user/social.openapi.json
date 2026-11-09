@@ -112,6 +112,45 @@
           }
         }
       }
+    },
+    "/api/users/{userId}/identities/{target}/tenant-identity": {
+      "post": {
+        "summary": "Resolve a linked identity in a provider tenant",
+        "description": "For Management API machine-to-machine clients only. Resolves the same linked account in a requested provider tenant using its encrypted token-vault entry. Returns only verified identity IDs, never tokens, and refuses a changed link or replaced vault entry. The connector must support tenant resolution and have token storage enabled. Missing or unusable login state requires normal provider sign-in; provider failures remain retryable.",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "tenantId": {
+                    "description": "The target provider tenant UUID."
+                  },
+                  "expectedIdentityId": {
+                    "description": "The currently linked provider identity ID. This must match the vault entry."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified tenant and local user IDs."
+          },
+          "403": {
+            "description": "Only machine-to-machine clients may resolve tenant identities."
+          },
+          "404": {
+            "description": "The user or vault entry no longer exists."
+          },
+          "422": {
+            "description": "The identity changed, token storage is unavailable, or provider sign-in must be refreshed."
+          },
+          "502": {
+            "description": "Provider identity verification is unavailable; retry later."
+          }
+        }
+      }
     }
   }
 }

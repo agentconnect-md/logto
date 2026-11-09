@@ -14,6 +14,7 @@ The Microsoft Azure AD connector provides a succinct way for your application to
     - [Prompts](#prompts)
     - [Scopes](#scopes)
     - [Disable Email Sync](#disable-email-sync)
+  - [Token storage and guest identities](#token-storage-and-guest-identities)
   - [References](#references)
 
 ## Set up Microsoft Azure AD in the Azure Portal
@@ -83,6 +84,21 @@ Microsoft Graph returns the user's email address in the `mail` attribute, but re
 Logto syncs that address to the user profile, where it serves as a user identifier. This switch stops it from doing so. It is off by default. Turn it on to leave the raw value in `rawData` only and source the email elsewhere.
 
 Consider turning it on if the connector accepts sign-ins from directories you do not control. This is the case when the app registration's **access type** is anything other than **Accounts in this organizational directory only**, or when **Tenant ID** is set to `organizations`, `common` or `consumers`.
+
+## Token storage and guest identities
+
+With token storage enabled and the Logto secret-vault encryption key configured,
+the connector stores its MSAL cache in the encrypted vault. The refresh-token
+field is an opaque connector-owned cache, not a raw token for other applications
+to exchange. It is never added to social profile data.
+
+Management API machine-to-machine clients can resolve an organizational account
+in a requested tenant through `POST /users/:userId/identities/:target/tenant-identity`.
+The operation verifies the same Microsoft home account, target tenant, and Graph
+user ID. It returns only identity IDs and preserves the original account link.
+It uses the existing `User.Read` permission and fails when Microsoft requires
+interactive authorization or the stored login has expired. Existing users need
+to sign in normally once after token storage is enabled to populate the vault.
 
 ## References
 

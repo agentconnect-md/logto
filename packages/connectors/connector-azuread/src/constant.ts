@@ -7,6 +7,7 @@ export const scopes = ['User.Read'];
 export const defaultMetadata: ConnectorMetadata = {
   id: 'azuread-universal',
   target: 'azuread',
+  isTokenStorageSupported: true,
   platform: ConnectorPlatform.Universal,
   name: {
     en: 'Microsoft',

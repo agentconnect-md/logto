@@ -131,6 +131,12 @@ export type GetTokenResponseAndUserInfo = (
 
 export type GetAccessTokenByRefreshToken = (refreshToken: string) => Promise<TokenResponse>;
 
+// Resolve the same linked account in another provider tenant without exposing its tokens.
+export type GetIdentityForTenant = (
+  refreshToken: string,
+  input: { userId: string; tenantId: string }
+) => Promise<{ identity: { userId: string; tenantId: string }; refreshToken: string }>;
+
 export type SocialConnector = BaseConnector<ConnectorType.Social> & {
   getAuthorizationUri: GetAuthorizationUri;
   getUserInfo: GetUserInfo;
@@ -148,6 +154,7 @@ export type SocialConnector = BaseConnector<ConnectorType.Social> & {
    * this function can be used to retrieve the access token by the refresh token.
    */
   getAccessTokenByRefreshToken?: GetAccessTokenByRefreshToken;
+  getIdentityForTenant?: GetIdentityForTenant;
   validateSamlAssertion?: ValidateSamlAssertion;
 };
 
