@@ -17,9 +17,12 @@ import { transpileUserProfileResponse } from '#src/utils/user.js';
 
 import type { ManagementApiRouter, RouterInitArgs } from '../types.js';
 
+import tenantIdentityRoutes from './tenant-identity.js';
+
 export default function adminUserSocialRoutes<T extends ManagementApiRouter>(
   ...[router, tenant]: RouterInitArgs<T>
 ) {
+  tenantIdentityRoutes(router, tenant);
   const {
     queries: {
       users: { findUserById, updateUserById, hasUserWithIdentity, deleteUserIdentity },

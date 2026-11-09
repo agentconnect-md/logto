@@ -1,6 +1,7 @@
 import {
   type CreateSecret,
   type CreateSocialTokenSetSecret,
+  type EncryptedSecret,
   type EnterpriseSsoTokenSetSecret,
   type Secret,
   type SecretEnterpriseSsoConnectorRelationPayload,
@@ -32,6 +33,27 @@ const secretEnterpriseSsoConnectorRelations = convertToIdentifiers(
 class SecretQueries extends SchemaQueries<SecretKeys, CreateSecret, Secret> {
   constructor(pool: CommonQueryMethods) {
     super(pool, Secrets);
+  }
+
+  // Serialize with identity changes so a completed provider request cannot revive an unlinked vault entry.
+  public async updateSocialTokenSetSecret(
+    secret: SocialTokenSetSecret,
+    encrypted: EncryptedSecret
+  ) {
+    return this.pool.transaction(async (transaction) => {
+      const linked = await transaction.maybeOne(sql`
+        select ${users.fields.id} from ${users.table}
+        join ${secrets.table} on ${secrets.fields.userId} = ${users.fields.id}
+        where ${users.fields.id} = ${secret.userId}
+          and ${secrets.fields.id} = ${secret.id}
+          and ${users.fields.identities}::jsonb -> ${secret.target} ->> 'userId' = ${secret.identityId}
+        for update
+      `);
+      if (!linked) {
+        throw new RequestError({ code: 'user.identity_not_exists_in_current_user', status: 422 });
+      }
+      return new SecretQueries(transaction).updateById(secret.id, encrypted);
+    });
   }
 
   /**

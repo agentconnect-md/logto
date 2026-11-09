@@ -14,13 +14,13 @@ export const azureADConfigGuard = z.object({
 
 export type AzureADConfig = z.infer<typeof azureADConfigGuard>;
 
-export const accessTokenResponseGuard = z.object({
-  accessToken: z.string(),
-  scopes: z.array(z.string()),
-  tokenType: z.string(),
+// The cache contains credentials and belongs only in the encrypted token vault.
+export const refreshContextGuard = z.object({
+  userId: z.string().min(1),
+  homeAccountId: z.string().min(1),
+  tenantId: z.string().uuid(),
+  cache: z.string().min(1),
 });
-
-export type AccessTokenResponse = z.infer<typeof accessTokenResponseGuard>;
 
 export const userInfoResponseGuard = z.object({
   id: z.string(),
