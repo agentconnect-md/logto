@@ -106,6 +106,7 @@ const userQueries = {
   hasUserWithIdentity: jest.fn().mockResolvedValue(false),
   findUserById: jest.fn().mockResolvedValue(mockUser),
   updateUserById: jest.fn().mockResolvedValue(mockUser),
+  updateUserFromSignIn: jest.fn().mockResolvedValue(mockUser),
 };
 const userLibraries = {
   checkIdentifierCollision: jest.fn().mockResolvedValue(null),
@@ -210,6 +211,7 @@ const createSignInInteraction = ({
     findUserByUsername: jest.fn().mockResolvedValue(user),
     findUserByEmail: jest.fn().mockResolvedValue(user),
     updateUserById: jest.fn().mockResolvedValue(user),
+    updateUserFromSignIn: jest.fn().mockResolvedValue(user),
   };
   const runActionHandler = jest.fn(
     async (_input: { event: unknown; key: LogtoActionKey }): Promise<unknown> => undefined
@@ -2287,7 +2289,7 @@ describe('ExperienceInteraction class', () => {
           },
         })
       );
-      expect(signInUserQueries.updateUserById).toHaveBeenCalledTimes(1);
+      expect(signInUserQueries.updateUserFromSignIn).toHaveBeenCalledTimes(1);
     });
 
     const requestedMfaPursuitCases: Array<{
@@ -2331,7 +2333,7 @@ describe('ExperienceInteraction class', () => {
         // factor the tenant lets the user enroll — so the password that reached `1fa` never ends
         // the pursuit at the weaker listed class.
         await expect(experienceInteraction.submit()).rejects.toMatchObject(error);
-        expect(signInUserQueries.updateUserById).not.toHaveBeenCalled();
+        expect(signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
         expect(provider.interactionResult).not.toHaveBeenCalled();
       }
     );
@@ -2367,7 +2369,7 @@ describe('ExperienceInteraction class', () => {
         })
       );
       // The sign-in side effects run exactly once, on the submission that passes.
-      expect(signInUserQueries.updateUserById).toHaveBeenCalledTimes(1);
+      expect(signInUserQueries.updateUserFromSignIn).toHaveBeenCalledTimes(1);
     });
 
     it('asks for a verifiable first factor on a social sign-in under a requested 1fa', async () => {
@@ -2400,7 +2402,7 @@ describe('ExperienceInteraction class', () => {
           maskedIdentifiers: { email: '****@logto.io' },
         },
       });
-      expect(signInUserQueries.updateUserById).not.toHaveBeenCalled();
+      expect(signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
       expect(provider.interactionResult).not.toHaveBeenCalled();
     });
 
@@ -2503,7 +2505,7 @@ describe('ExperienceInteraction class', () => {
           expect.anything(),
           expect.objectContaining({ error: 'unmet_authentication_requirements' })
         );
-        expect(signInUserQueries.updateUserById).not.toHaveBeenCalled();
+        expect(signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
         expect(runAction).not.toHaveBeenCalled();
         expect(signInContext.appendDataHookContext).not.toHaveBeenCalled();
       }
@@ -2571,7 +2573,7 @@ describe('ExperienceInteraction class', () => {
           await expect(experienceInteraction.toSanitizedJson()).resolves.toMatchObject({
             authenticationContext: { establishableMethods: [MissingProfile.password] },
           });
-          expect(signInUserQueries.updateUserById).not.toHaveBeenCalled();
+          expect(signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
           expect(provider.interactionResult).not.toHaveBeenCalled();
 
           await experienceInteraction.profile.setPasswordDigestWithValidation(
@@ -2621,7 +2623,7 @@ describe('ExperienceInteraction class', () => {
           await experienceInteraction.mfa.addBackupCodeByVerificationId('new-backup-codes');
         }
 
-        expect(signInUserQueries.updateUserById).not.toHaveBeenCalled();
+        expect(signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
         expect(runAction).not.toHaveBeenCalled();
         expect(provider.interactionResult).not.toHaveBeenCalled();
 
@@ -2644,9 +2646,10 @@ describe('ExperienceInteraction class', () => {
             },
           })
         );
-        expect(signInUserQueries.updateUserById).toHaveBeenCalledTimes(1);
+        expect(signInUserQueries.updateUserFromSignIn).toHaveBeenCalledTimes(1);
         expect(runAction).toHaveBeenCalledTimes(1);
-        const written = jest.mocked(signInTenant.queries.users.updateUserById).mock.calls[0]?.[1];
+        const written = jest.mocked(signInTenant.queries.users.updateUserFromSignIn).mock
+          .calls[0]?.[1];
         if (social) {
           expect(written?.passwordEncrypted).toEqual(expect.any(String));
           expect(written?.passwordEncryptionMethod).toBe(UsersPasswordEncryptionMethod.Argon2i);
@@ -2682,7 +2685,7 @@ describe('ExperienceInteraction class', () => {
         code: 'session.step_up.require_verification',
         data: { availableMethods: [VerificationType.Password] },
       });
-      expect(signInUserQueries.updateUserById).not.toHaveBeenCalled();
+      expect(signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
       expect(provider.interactionResult).not.toHaveBeenCalled();
     });
 
@@ -3037,7 +3040,7 @@ describe('ExperienceInteraction class', () => {
         expect.anything(),
         expect.objectContaining({ error: 'unmet_authentication_requirements' })
       );
-      expect(unmet.signInUserQueries.updateUserById).not.toHaveBeenCalled();
+      expect(unmet.signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
       expect(unmet.runAction).not.toHaveBeenCalled();
       expect(unmet.signInContext.appendDataHookContext).not.toHaveBeenCalled();
       expect(userLibraries.insertUser).not.toHaveBeenCalled();
@@ -3503,7 +3506,7 @@ describe('ExperienceInteraction class', () => {
         status: 422,
         data: { availableFactors: [MfaFactor.TOTP] },
       });
-      expect(signInUserQueries.updateUserById).not.toHaveBeenCalled();
+      expect(signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
     });
   });
 
@@ -3546,7 +3549,7 @@ describe('ExperienceInteraction class', () => {
               data: { availableFactors: [MfaFactor.EmailVerificationCode] },
             })
           : expect(experienceInteraction.guardMfaVerificationStatus()).resolves.toBeUndefined());
-        expect(signInUserQueries.updateUserById).not.toHaveBeenCalled();
+        expect(signInUserQueries.updateUserFromSignIn).not.toHaveBeenCalled();
       }
     );
 
