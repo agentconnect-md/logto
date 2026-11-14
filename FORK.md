@@ -17,6 +17,14 @@ Signing in with the linked account may refresh its own token. Database row locks
 protect token writes during concurrent Link/Unlink and prevent sign-in from replacing
 a newly linked account. There are no schema or API-shape changes.
 
+## Registration behavior
+
+When the sign-in experience enables no sign-up identifier, an account can only be
+created from a verified social, enterprise SSO, or one-time token identity. A
+register submission with no verification record, a username, or a verification
+code is refused with `auth.forbidden`. Tenants that enable a sign-up identifier
+are unchanged.
+
 ## Build and verification
 
 The Dockerfile builds the checked-out fork source and its lockfile. There is no

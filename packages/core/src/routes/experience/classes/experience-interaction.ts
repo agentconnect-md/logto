@@ -532,6 +532,7 @@ export default class ExperienceInteraction {
    * - id no `verificationId` is provided, directly create a new user with the current profile data.
    *
    * @throws {RequestError} with 403 if the register is not allowed by the sign-in experience settings
+   * @throws {RequestError} with 403 if no sign-up identifier is enabled and the registration carries no verified social, SSO or one-time token identity
    * @throws {RequestError} with 404 if a `verificationId` is provided but the verification record is not found
    * @throws {RequestError} with 400 if the verification record can not be used for creating a new user or not verified
    * @throws {RequestError} with 422 if the profile data is not unique across users
@@ -564,9 +565,18 @@ export default class ExperienceInteraction {
       await this.save();
     }
 
+    const hasVerifiedOneTimeToken = this.verificationRecords.get(
+      VerificationType.OneTimeToken
+    )?.isVerified;
+
     await this.signInExperienceValidator.guardInteractionEvent(
       InteractionEvent.Register,
-      this.verificationRecords.get(VerificationType.OneTimeToken)?.isVerified
+      hasVerifiedOneTimeToken
+    );
+    await this.signInExperienceValidator.guardRegistrationIdentity(
+      this.hasVerifiedSocialIdentity ||
+        this.hasVerifiedSsoIdentity ||
+        Boolean(hasVerifiedOneTimeToken)
     );
     await this.guardCaptcha();
     await this.profile.assertUserMandatoryProfileFulfilled({

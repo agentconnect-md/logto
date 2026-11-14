@@ -127,6 +127,23 @@ export class SignInExperienceValidator {
     }
   }
 
+  /**
+   * Without a sign-up identifier, the only way to register is a verified social, enterprise SSO
+   * or one-time token identity.
+   *
+   * @throws {RequestError} with status 403 if the registration carries no such identity
+   */
+  public async guardRegistrationIdentity(hasVerifiedIdentity: boolean) {
+    const {
+      signUp: { identifiers },
+    } = await this.getSignInExperienceData();
+
+    assertThat(
+      identifiers.length > 0 || hasVerifiedIdentity,
+      new RequestError({ code: 'auth.forbidden', status: 403 })
+    );
+  }
+
   public async guardIdentificationMethod(
     event: InteractionEvent.ForgotPassword | InteractionEvent.SignIn,
     verificationRecord: VerificationRecord
