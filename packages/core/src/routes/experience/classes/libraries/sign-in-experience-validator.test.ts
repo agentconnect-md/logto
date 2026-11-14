@@ -854,6 +854,36 @@ describe('SignInExperienceValidator', () => {
     });
   });
 
+  describe('guardRegistrationIdentity', () => {
+    const buildValidatorWithSignUpIdentifiers = (identifiers: SignInIdentifier[]) => {
+      signInExperiences.findDefaultSignInExperience.mockResolvedValueOnce({
+        signUp: { identifiers, password: false, verify: false },
+      });
+
+      return new SignInExperienceValidator(mockTenant.libraries, mockTenant.queries);
+    };
+
+    it('rejects a registration without a verified identity when no sign-up identifier is enabled', async () => {
+      const validator = buildValidatorWithSignUpIdentifiers([]);
+
+      await expect(validator.guardRegistrationIdentity(false)).rejects.toMatchError(
+        new RequestError({ code: 'auth.forbidden', status: 403 })
+      );
+    });
+
+    it('allows a registration with a verified identity when no sign-up identifier is enabled', async () => {
+      const validator = buildValidatorWithSignUpIdentifiers([]);
+
+      await expect(validator.guardRegistrationIdentity(true)).resolves.not.toThrow();
+    });
+
+    it('allows a registration without a verified identity when a sign-up identifier is enabled', async () => {
+      const validator = buildValidatorWithSignUpIdentifiers([SignInIdentifier.Username]);
+
+      await expect(validator.guardRegistrationIdentity(false)).resolves.not.toThrow();
+    });
+  });
+
   describe('isRegistrationDisabled', () => {
     it('returns true when the sign-in mode is sign-in only', async () => {
       const validator = buildValidatorWithSignInMode(SignInMode.SignIn);

@@ -362,6 +362,55 @@ describe('ExperienceInteraction class', () => {
     });
   });
 
+  describe('registration without a sign-up identifier', () => {
+    const socialOnlySignInExperience = {
+      ...mockSignInExperience,
+      signUp: { identifiers: [], password: false, verify: false },
+    };
+
+    const defaultSignInExperience = {
+      ...mockSignInExperience,
+      signUp: { identifiers: [SignInIdentifier.Email], password: false, verify: true },
+    };
+
+    beforeEach(() => {
+      userLibraries.insertUser.mockClear();
+      signInExperiences.findDefaultSignInExperience.mockResolvedValue(socialOnlySignInExperience);
+    });
+
+    afterEach(() => {
+      signInExperiences.findDefaultSignInExperience.mockResolvedValue(defaultSignInExperience);
+    });
+
+    it('rejects a registration that carries no verification record', async () => {
+      const experienceInteraction = new ExperienceInteraction(
+        ctx,
+        tenant,
+        InteractionEvent.Register
+      );
+
+      await expect(experienceInteraction.createUser()).rejects.toMatchError(
+        new RequestError({ code: 'auth.forbidden', status: 403 })
+      );
+      expect(userLibraries.insertUser).not.toHaveBeenCalled();
+    });
+
+    it('rejects a registration from a verification code', async () => {
+      const experienceInteraction = new ExperienceInteraction(
+        ctx,
+        tenant,
+        InteractionEvent.Register
+      );
+
+      experienceInteraction.setVerificationRecord(emailVerificationRecord);
+
+      await expect(
+        experienceInteraction.createUser(emailVerificationRecord.id)
+      ).rejects.toMatchError(new RequestError({ code: 'auth.forbidden', status: 403 }));
+      expect(userLibraries.insertUser).not.toHaveBeenCalled();
+    });
+  });
+
   describe('sign-in submission', () => {
     it('runs PostSignIn action before provider interaction result', async () => {
       const { experienceInteraction, provider, runAction, runActionHandler, getUserContext } =
